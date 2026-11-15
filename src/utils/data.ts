@@ -409,6 +409,23 @@ export const saveDislikeListRules = async(rules: string) => {
   await saveData(dislikeListPrefix, rules)
 }
 
+const downloadListKey = storageDataPrefix.downloadList
+const saveDownloadListThrottle = throttle((list: LX.Download.ListItem[]) => {
+  void saveData(downloadListKey, list)
+}, 1000)
+/**
+ * 获取下载列表
+ */
+export const getDownloadList = async() => {
+  return await getData<LX.Download.ListItem[]>(downloadListKey) ?? []
+}
+/**
+ * 保存下载列表
+ */
+export const saveDownloadList = (list: LX.Download.ListItem[]) => {
+  saveDownloadListThrottle(list)
+}
+
 // export const clearMusicUrlAndLyric = async() => {
 //   let keys = (await getAllKeys()).filter(key => key.startsWith(storageDataPrefix.musicUrl) || key.startsWith(storageDataPrefix.lyric))
 //   await removeDataMultiple(keys)

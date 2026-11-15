@@ -14,6 +14,7 @@ export type {
 } from 'react-native-file-system'
 
 // export const externalDirectoryPath = RNFS.ExternalDirectoryPath
+export const externalDirectoryPath = RNFS.ExternalDirectoryPath
 
 export const extname = (name: string) => name.lastIndexOf('.') > 0 ? name.substring(name.lastIndexOf('.') + 1) : ''
 

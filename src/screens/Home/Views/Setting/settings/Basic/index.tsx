@@ -7,6 +7,7 @@ import SourceName from './SourceName'
 import Language from './Language'
 import FontSize from './FontSize'
 import ShareType from './ShareType'
+import AppIcon from './AppIcon'
 import IsStartupAutoPlay from './IsStartupAutoPlay'
 import IsStartupPushPlayDetailScreen from './IsStartupPushPlayDetailScreen'
 import IsAutoHidePlayBar from './IsAutoHidePlayBar'
@@ -16,6 +17,7 @@ import IsUseSystemFileSelector from './IsUseSystemFileSelector'
 import IsAlwaysKeepStatusbarHeight from './IsAlwaysKeepStatusbarHeight'
 import IsShowBackBtn from './IsShowBackBtn'
 import IsShowExitBtn from './IsShowExitBtn'
+import DownloadSaveLyric from './DownloadSaveLyric'
 import DrawerLayoutPosition from './DrawerLayoutPosition'
 import { useI18n } from '@/lang/i18n'
 
@@ -33,12 +35,14 @@ export default memo(() => {
       <IsHomePageScroll />
       <IsAllowProgressBarSeek />
       <IsUseSystemFileSelector />
+      <DownloadSaveLyric />
       <IsAlwaysKeepStatusbarHeight />
       <Theme />
       <DrawerLayoutPosition />
       <Language />
       <FontSize />
       <ShareType />
+      <AppIcon />
       <Source />
       <SourceName />
     </Section>

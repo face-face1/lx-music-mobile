@@ -4,6 +4,7 @@ import { createStyle } from '@/utils/tools'
 
 import LeftBar, { type LeftBarType, type LeftBarProps } from './LeftBar'
 import MusicList, { type MusicListType } from '../MusicList'
+import PlayAllBar from '../PlayAllBar'
 import { getLeaderboardSetting, saveLeaderboardSetting } from '@/utils/data'
 // import { BorderWidths } from '@/theme'
 // import { useTheme } from '@/store/theme/hook'
@@ -42,9 +43,12 @@ export default () => {
         ref={leftBarRef}
         onChangeList={handleChangeBound}
       />
-      <MusicList
-        ref={musicListRef}
-      />
+      <View style={styles.content}>
+        <PlayAllBar />
+        <MusicList
+          ref={musicListRef}
+        />
+      </View>
     </View>
   )
 }

@@ -6,6 +6,7 @@ import MusicList, { type MusicListType } from '../MusicList'
 import { getLeaderboardSetting, saveLeaderboardSetting } from '@/utils/data'
 import DrawerLayoutFixed, { type DrawerLayoutFixedType } from '@/components/common/DrawerLayoutFixed'
 import HeaderBar, { type HeaderBarType, type HeaderBarProps } from './HeaderBar'
+import PlayAllBar from '../PlayAllBar'
 import { scaleSizeW } from '@/utils/pixelRatio'
 import { useTheme } from '@/store/theme/hook'
 // import { BorderWidths } from '@/theme'
@@ -133,6 +134,7 @@ export default () => {
     >
       <View style={styles.container}>
         <HeaderBar ref={headerBarRef} onShowBound={onShowBound} onSourceChange={onSourceChange} />
+        <PlayAllBar />
         <MusicList ref={musicListRef} />
       </View>
     </DrawerLayoutFixed>

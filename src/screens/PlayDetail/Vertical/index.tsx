@@ -1,4 +1,4 @@
-import { memo, useState, useRef, useMemo, useEffect } from 'react'
+import { memo, useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { View, AppState } from 'react-native'
 
 import Header from './components/Header'
@@ -10,12 +10,15 @@ import Pic from './Pic'
 import Lyric from './Lyric'
 import { screenkeepAwake, screenUnkeepAwake } from '@/utils/nativeModules/utils'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
+import { usePlayDetailGesture } from '@/utils/hooks'
+import { toggleCollectMusic } from '@/core/player/player'
+import { useI18n } from '@/lang'
 // import { useTheme } from '@/store/theme/hook'
 
-const LyricPage = ({ activeIndex }: { activeIndex: number }) => {
+const LyricPage = ({ activeIndex, onScrollTop }: { activeIndex: number, onScrollTop: (isTop: boolean) => void }) => {
   const initedRef = useRef(false)
-  const lyric = useMemo(() => <Lyric />, [])
+  const lyric = useMemo(() => <Lyric onScrollTop={onScrollTop} />, [onScrollTop])
   switch (activeIndex) {
     // case 3:
     case 1:
@@ -30,11 +33,38 @@ const LyricPage = ({ activeIndex }: { activeIndex: number }) => {
 // global.iskeep = false
 export default memo(({ componentId }: { componentId: string }) => {
   // const theme = useTheme()
+  const t = useI18n()
   const [pageIndex, setPageIndex] = useState(0)
   const showLyricRef = useRef(false)
+  const pagerViewRef = useRef<PagerView>(null)
+  const pageIndexRef = useRef(0)
+  // 歌词列表是否已滚动到顶部
+  const lyricTopRef = useRef(true)
+
+  const handleToggleCollect = useCallback(() => {
+    void toggleCollectMusic().then((isCollected) => {
+      toast(isCollected ? t('collect_success') : t('uncollect_success'))
+    })
+  }, [t])
+
+  const handleScrollTop = useCallback((isTop: boolean) => {
+    lyricTopRef.current = isTop
+  }, [])
+
+  // 竖屏播放页的左右滑动由 PagerView 接管，这里只识别竖直滑动与双击
+  const panResponder = usePlayDetailGesture({
+    enableHorizontal: false,
+    enableVertical: true,
+    // 封面页可任意竖直滑动切换歌词；歌词页仅在列表已到顶部且向下滑时接管（返回封面）
+    shouldClaim: (_, dy) => pageIndexRef.current !== 1 || (lyricTopRef.current && dy > 0),
+    onSwipeUp: () => { pagerViewRef.current?.setPage(1) }, // 上滑查看歌词
+    onSwipeDown: () => { pagerViewRef.current?.setPage(0) }, // 下滑返回封面
+    onDoubleTap: handleToggleCollect,
+  })
 
   const onPageSelected = ({ nativeEvent }: PagerViewOnPageSelectedEvent) => {
     setPageIndex(nativeEvent.position)
+    pageIndexRef.current = nativeEvent.position
     showLyricRef.current = nativeEvent.position == 1
     if (showLyricRef.current) {
       screenkeepAwake()
@@ -74,18 +104,21 @@ export default memo(({ componentId }: { componentId: string }) => {
     <>
       <Header />
       <View style={styles.container}>
-        <PagerView
-          onPageSelected={onPageSelected}
-          // onPageScrollStateChanged={onPageScrollStateChanged}
-          style={styles.pagerView}
-        >
-          <View collapsable={false}>
-            <Pic componentId={componentId} />
-          </View>
-          <View collapsable={false}>
-            <LyricPage activeIndex={pageIndex} />
-          </View>
-        </PagerView>
+        <View style={styles.pagerView} {...panResponder.panHandlers}>
+          <PagerView
+            ref={pagerViewRef}
+            onPageSelected={onPageSelected}
+            // onPageScrollStateChanged={onPageScrollStateChanged}
+            style={styles.pagerView}
+          >
+            <View collapsable={false}>
+              <Pic componentId={componentId} />
+            </View>
+            <View collapsable={false}>
+              <LyricPage activeIndex={pageIndex} onScrollTop={handleScrollTop} />
+            </View>
+          </PagerView>
+        </View>
         {/* <View style={styles.pageIndicator} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pageIndicator}>
           <View style={{ ...styles.pageIndicatorItem, backgroundColor: pageIndex == 0 ? theme['c-primary-light-100-alpha-700'] : theme['c-primary-alpha-900'] }}></View>
           <View style={{ ...styles.pageIndicatorItem, backgroundColor: pageIndex == 1 ? theme['c-primary-light-100-alpha-700'] : theme['c-primary-alpha-900'] }}></View>

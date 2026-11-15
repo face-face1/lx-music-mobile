@@ -5,15 +5,17 @@ import type { Source as SongListSource } from '@/store/search/songlist/state'
 import MusicList, { type MusicListType } from './MusicList'
 import BlankView, { type BlankViewType } from './BlankView'
 import SonglistList from './SonglistList'
+import SingerList from './SingerList'
 
 interface ListProps {
   onSearch: (keyword: string) => void
+  onSingerPress: (singer: string) => void
 }
 export interface ListType {
   loadList: (text: string, source: MusicSource | SongListSource, type: SearchState['searchType']) => void
 }
 
-export default forwardRef<ListType, ListProps>(({ onSearch }, ref) => {
+export default forwardRef<ListType, ListProps>(({ onSearch, onSingerPress }, ref) => {
   const [listType, setListType] = useState<SearchState['searchType']>('music')
   const [showBlankView, setShowListView] = useState(true)
   const listRef = useRef<MusicListType>(null)
@@ -42,6 +44,8 @@ export default forwardRef<ListType, ListProps>(({ onSearch }, ref) => {
       ? <BlankView ref={blankViewRef} onSearch={onSearch} />
       : listType == 'songlist'
         ? <SonglistList ref={listRef} />
-        : <MusicList ref={listRef} />
+        : listType == 'singer'
+          ? <SingerList ref={listRef} onSingerPress={onSingerPress} />
+          : <MusicList ref={listRef} />
   )
 })

@@ -26,7 +26,7 @@ import { filterList } from './utils'
 import BackgroundTimer from 'react-native-background-timer'
 import { checkIgnoringBatteryOptimization, checkNotificationPermission, debounceBackgroundTimer } from '@/utils/tools'
 import { LIST_IDS } from '@/config/constant'
-import { addListMusics, removeListMusics } from '@/core/list'
+import { addListMusics, getListMusics, removeListMusics } from '@/core/list'
 import { addDislikeInfo } from '@/core/dislikeList'
 
 // import { checkMusicFileAvailable } from '@renderer/utils/music'
@@ -654,6 +654,21 @@ export const uncollectMusic = () => {
       ? playerState.playMusicInfo.musicInfo.metadata.musicInfo.id
       : playerState.playMusicInfo.musicInfo.id,
   ])
+}
+
+/**
+ * 切换当前播放歌曲的收藏状态
+ * @returns 切换后是否已收藏
+ */
+export const toggleCollectMusic = async(): Promise<boolean> => {
+  if (!playerState.playMusicInfo.musicInfo) return false
+  const musicInfo = 'progress' in playerState.playMusicInfo.musicInfo
+    ? playerState.playMusicInfo.musicInfo.metadata.musicInfo
+    : playerState.playMusicInfo.musicInfo
+  const isCollected = (await getListMusics(LIST_IDS.LOVE)).some(m => m.id == musicInfo.id)
+  if (isCollected) uncollectMusic()
+  else collectMusic()
+  return !isCollected
 }
 
 /**

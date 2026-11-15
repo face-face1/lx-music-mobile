@@ -77,6 +77,8 @@ export const storageDataPrefix = {
 
   dislikeList: '@dislike_list',
 
+  downloadList: '@download_list',
+
   userApi: '@user_api__',
 } as const
 
@@ -95,15 +97,15 @@ export const storageDataPrefixOld = {
   notificationTipEnable: '@notification_tip_enable',
 } as const
 
-export const APP_PROVIDER_NAME = 'cn.toside.music.mobile.provider'
+export const APP_PROVIDER_NAME = 'cn.toside.music.mobile.fork.provider'
 
 
 export const NAV_MENUS = [
   { id: 'nav_search', icon: 'search-2' },
   { id: 'nav_songlist', icon: 'album' },
   { id: 'nav_top', icon: 'leaderboard' },
+  { id: 'download', icon: 'download-2' },
   { id: 'nav_love', icon: 'love' },
-  // { id: 'download', icon: 'download-2' },
   { id: 'nav_setting', icon: 'setting' },
 ] as const
 
@@ -144,7 +146,7 @@ export const DEFAULT_SETTING = {
   search: {
     temp_source: 'kw' as LX.OnlineSource,
     source: 'all' as LX.OnlineSource | 'all',
-    type: 'music' as 'music' | 'songlist',
+    type: 'music' as 'music' | 'songlist' | 'singer',
   },
 
   viewPrevState: {

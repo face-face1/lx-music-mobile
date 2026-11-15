@@ -2,6 +2,7 @@ import { LIST_IDS } from '@/config/constant'
 import { addListMusics } from '@/core/list'
 import { playList, playNext } from '@/core/player/player'
 import { addTempPlayList } from '@/core/player/tempPlayList'
+import { startDownloads } from '@/core/music/downloadManager'
 import settingState from '@/store/setting/state'
 import { getListMusicSync } from '@/utils/listManage'
 import { confirmDialog, openUrl, shareMusic, toast } from '@/utils/tools'
@@ -25,6 +26,17 @@ export const handlePlayLater = (musicInfo: LX.Music.MusicInfoOnline, selectedLis
   } else {
     addTempPlayList([{ listId: '', musicInfo }])
   }
+}
+
+export const handleDownloadMusic = async(musicInfo: LX.Music.MusicInfoOnline, selectedList: LX.Music.MusicInfoOnline[], onCancelSelect: () => void) => {
+  const targets = selectedList.length ? selectedList : [musicInfo]
+  const count = await startDownloads(targets).catch(() => 0)
+  if (count > 0) {
+    toast(global.i18n.t('download_item_added_tip', { name: musicInfo.name }))
+  } else {
+    toast(global.i18n.t('download_task_exist_tip'))
+  }
+  onCancelSelect()
 }
 
 
