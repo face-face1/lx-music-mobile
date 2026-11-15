@@ -7,7 +7,7 @@ import ListMusicMultiAdd, { type MusicMultiAddModalType as ListAddMultiType } fr
 import ListMusicAdd, { type MusicAddModalType as ListMusicAddType } from '@/components/MusicAddModal'
 import MultipleModeBar, { type MultipleModeBarType, type SelectMode } from './MultipleModeBar'
 import { clearMusicUrl, handleDislikeMusic, handleDownloadMusic, handlePlay, handlePlayLater, handleShare, handleShowMusicSourceDetail } from './listAction'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 
 export interface OnlineListProps {
   onRefresh: ListProps['onRefresh']
@@ -70,6 +70,14 @@ export default forwardRef<OnlineListType, OnlineListProps>(({
       selectedList: listRef.current!.getSelectedList(),
     }, position)
   }
+  const handleMultiShowMenu = (position: Position) => {
+    const selected = listRef.current?.getSelectedList() ?? []
+    if (!selected.length) {
+      toast(global.i18n.t('download_multi_select_empty'))
+      return
+    }
+    showMenu(selected[0], -1, position)
+  }
   const handleAddMusic = (info: SelectInfo) => {
     if (info.selectedList.length) {
       listMusicMultiAddRef.current?.show({ selectedList: info.selectedList, listId: '', isMove: false })
@@ -99,6 +107,7 @@ export default forwardRef<OnlineListType, OnlineListProps>(({
           onSwitchMode={hancelSwitchSelectMode}
           onSelectAll={isAll => listRef.current?.selectAll(isAll)}
           onExitSelectMode={hancelExitSelect}
+          onShowMenu={handleMultiShowMenu}
         />
       </View>
       <ListMusicAdd ref={listMusicAddRef} onAdded={() => { hancelExitSelect() }} />

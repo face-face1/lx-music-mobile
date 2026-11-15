@@ -6,7 +6,7 @@ import { clearMusicUrl, handleDislikeMusic, handleDownloadMusic, handlePlay, han
 import List, { type ListType } from './List'
 import ListMusicAdd, { type MusicAddModalType as ListMusicAddType } from '@/components/MusicAddModal'
 import ListMusicMultiAdd, { type MusicMultiAddModalType as ListAddMultiType } from '@/components/MusicMultiAddModal'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 import { type LayoutChangeEvent, View } from 'react-native'
 import ActiveList, { type ActiveListType } from './ActiveList'
 import MultipleModeBar, { type SelectMode, type MultipleModeBarType } from './MultipleModeBar'
@@ -70,6 +70,14 @@ export default () => {
       selectedList: listRef.current!.getSelectedList(),
     }, position)
   }, [])
+  const handleMultiShowMenu = useCallback((position: Position) => {
+    const selected = listRef.current?.getSelectedList() ?? []
+    if (!selected.length) {
+      toast(global.i18n.t('download_multi_select_empty'))
+      return
+    }
+    showMenu(selected[0], -1, position)
+  }, [showMenu])
   const handleShowSearch = useCallback(() => {
     isShowSearchBarModeBar.current = true
     if (isShowMultipleModeBar.current) {
@@ -128,6 +136,7 @@ export default () => {
           onSwitchMode={hancelSwitchSelectMode}
           onSelectAll={isAll => listRef.current?.selectAll(isAll)}
           onExitSelectMode={hancelExitSelect}
+          onShowMenu={handleMultiShowMenu}
         />
         <ListSearchBar
           ref={listSearchBarRef}
