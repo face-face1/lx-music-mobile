@@ -110,7 +110,8 @@ android {
 
     namespace "cn.toside.music.mobile"
     defaultConfig {
-        applicationId "cn.toside.music.mobile"
+        // 与原版共存的独立包名
+        applicationId "cn.toside.music.mobile.fork"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode verCode

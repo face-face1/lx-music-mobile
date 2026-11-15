@@ -14,12 +14,13 @@ import { createStyle } from '@/utils/tools'
 import TipList, { type TipListType } from './TipList'
 import List, { type ListType } from './List'
 import { addHistoryWord } from '@/core/search/search'
+import { setSearchText } from '@/core/search/music'
 
 
 interface SearchInfo {
   temp_source: LX.OnlineSource
   source: LX.OnlineSource | 'all'
-  searchType: 'music' | 'songlist'
+  searchType: SearchType
 }
 
 export default () => {
@@ -38,6 +39,7 @@ export default () => {
       searchInfo.current.searchType = info.type
       switch (info.type) {
         case 'music':
+        case 'singer':
           headerBarRef.current?.setSourceList(searchMusicState.sources, info.source)
           break
         case 'songlist':
@@ -90,6 +92,14 @@ export default () => {
     void addHistoryWord(text)
     listRef.current?.loadList(text, searchInfo.current.source, searchInfo.current.searchType)
   }
+  // 点击「歌手」搜索结果时，以歌手名作为关键词切回「歌曲」分类
+  const handleSingerPress = (singer: string) => {
+    handleHideTipList()
+    setSearchText(singer)
+    headerBarRef.current?.setText(singer)
+    void addHistoryWord(singer)
+    global.app_event.searchTypeChanged('music')
+  }
   const handleShowTipList: HeaderBarProps['onShowTipList'] = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => {
@@ -109,7 +119,7 @@ export default () => {
       />
       <View style={styles.content} onLayout={handleLayout}>
         <TipList ref={searchTipListRef} onSearch={handleSearch} />
-        <List ref={listRef} onSearch={handleSearch} />
+        <List ref={listRef} onSearch={handleSearch} onSingerPress={handleSingerPress} />
       </View>
     </View>
   )

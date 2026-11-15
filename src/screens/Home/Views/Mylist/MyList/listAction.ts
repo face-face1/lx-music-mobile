@@ -1,4 +1,5 @@
 import { addListMusics, getListMusics, removeListMusics, removeUserList, setFetchingListStatus, updateListMusics } from '@/core/list'
+import { startDownloads } from '@/core/music/downloadManager'
 import { confirmDialog, handleReadFile, handleSaveFile, showImportTip, toast } from '@/utils/tools'
 import syncSourceList from '@/core/syncSourceList'
 import { log } from '@/utils/log'
@@ -75,6 +76,23 @@ export const handleExport = (listInfo: LX.List.MyListInfo, path: string) => {
   }).catch((err: any) => {
     log.error(err.message)
     toast(global.i18n.t('setting_backup_part_export_list_tip_failed') + ': ' + (err.message as string))
+  })
+}
+
+export const handleDownloadList = (listInfo: LX.List.MyListInfo) => {
+  void getListMusics(listInfo.id).then(async allMusic => {
+    const targets = allMusic.filter(m => m.source != 'local')
+    if (!targets.length) {
+      toast(global.i18n.t('download_list_empty_tip'))
+      return
+    }
+    const isConfirmed = await confirmDialog({
+      message: global.i18n.t('download_all_confirm', { name: listInfo.name, num: targets.length }),
+      confirmButtonText: global.i18n.t('confirm_button_text'),
+    })
+    if (!isConfirmed) return
+    const count = await startDownloads(targets).catch(() => 0)
+    toast(global.i18n.t('download_all_started_tip', { num: count }))
   })
 }
 

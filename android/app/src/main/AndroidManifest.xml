@@ -28,10 +28,6 @@
         android:windowSoftInputMode="adjustResize"
         android:exported="true">
         <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-        <intent-filter>
           <action android:name="android.intent.action.VIEW" />
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
@@ -90,6 +86,56 @@
           <data android:pathSuffix=".lxmc" tools:targetApi="s" />
         </intent-filter>
       </activity>
+
+      <!-- 可切换的应用图标（默认启用 default，其余由 AppIconModule 动态启停） -->
+      <activity-alias
+        android:name=".IconAliasDefault"
+        android:enabled="true"
+        android:exported="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:targetActivity=".MainActivity">
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+      </activity-alias>
+      <activity-alias
+        android:name=".IconAliasBlue"
+        android:enabled="false"
+        android:exported="true"
+        android:icon="@mipmap/ic_launcher_blue"
+        android:roundIcon="@mipmap/ic_launcher_blue_round"
+        android:targetActivity=".MainActivity">
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+      </activity-alias>
+      <activity-alias
+        android:name=".IconAliasPurple"
+        android:enabled="false"
+        android:exported="true"
+        android:icon="@mipmap/ic_launcher_purple"
+        android:roundIcon="@mipmap/ic_launcher_purple_round"
+        android:targetActivity=".MainActivity">
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+      </activity-alias>
+      <activity-alias
+        android:name=".IconAliasOrange"
+        android:enabled="false"
+        android:exported="true"
+        android:icon="@mipmap/ic_launcher_orange"
+        android:roundIcon="@mipmap/ic_launcher_orange_round"
+        android:targetActivity=".MainActivity">
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+      </activity-alias>
 
       <!-- Define a FileProvider for API24+ -->
       <!-- note this is the authority name used by other modules like rn-fetch-blob, easy to have conflicts -->

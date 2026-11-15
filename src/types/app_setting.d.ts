@@ -352,6 +352,11 @@ declare global {
       'download.fileName': '歌名 - 歌手' | '歌手 - 歌名' | '歌名'
 
       /**
+       * 下载歌曲时是否同时保存歌词文件（.lrc）
+       */
+      'download.saveLyric': boolean
+
+      /**
        * 是否启用同步
        */
       'sync.enable': boolean

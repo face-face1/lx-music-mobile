@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react'
+import { memo, useEffect, useCallback } from 'react'
 import { View, AppState } from 'react-native'
 import { screenkeepAwake, screenUnkeepAwake } from '@/utils/nativeModules/utils'
 import StatusBar from '@/components/common/StatusBar'
@@ -14,13 +14,32 @@ import Pic from './Pic'
 // import ControlBtn from './ControlBtn'
 import Lyric from './Lyric'
 import Player from './Player'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 import { marginLeftRaw } from './constant'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { usePlayDetailGesture } from '@/utils/hooks'
+import { playNext, playPrev, toggleCollectMusic } from '@/core/player/player'
+import { useI18n } from '@/lang'
 // import MoreBtn from './MoreBtn2'
 
 export default memo(({ componentId }: { componentId: string }) => {
+  const t = useI18n()
   const statusBarHeight = useStatusbarHeight()
+
+  const handleToggleCollect = useCallback(() => {
+    void toggleCollectMusic().then((isCollected) => {
+      toast(isCollected ? t('collect_success') : t('uncollect_success'))
+    })
+  }, [t])
+
+  // 横屏播放页无翻页组件，左滑下一首 / 右滑上一首，双击收藏
+  const panResponder = usePlayDetailGesture({
+    enableHorizontal: true,
+    enableVertical: false,
+    onSwipeLeft: () => { void playNext() }, // 左滑下一首
+    onSwipeRight: () => { void playPrev() }, // 右滑上一首
+    onDoubleTap: handleToggleCollect,
+  })
 
   useEffect(() => {
     setComponentId(COMPONENT_IDS.playDetail, componentId)
@@ -54,7 +73,7 @@ export default memo(({ componentId }: { componentId: string }) => {
   return (
     <PageContent>
       <StatusBar />
-      <View style={{ ...styles.container, paddingTop: statusBarHeight }}>
+      <View style={{ ...styles.container, paddingTop: statusBarHeight }} {...panResponder.panHandlers}>
         <View style={styles.left}>
           <Header />
           <View style={styles.leftContent}>

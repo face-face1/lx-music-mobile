@@ -1,6 +1,7 @@
 import { createList, setTempList } from '@/core/list'
 import { playList } from '@/core/player/player'
 import { getListDetail, getListDetailAll } from '@/core/songlist'
+import { startDownloads } from '@/core/music/downloadManager'
 import { LIST_IDS } from '@/config/constant'
 import listState from '@/store/list/state'
 import syncSourceList from '@/core/syncSourceList'
@@ -29,6 +30,27 @@ export const handlePlay = async(id: string, source: Source, list?: LX.Music.Musi
     await setTempList(listId, [...fullList])
     void playList(LIST_IDS.TEMP, index)
   }
+}
+
+export const handleDownloadAll = async(id: string, source: Source, name: string) => {
+  let list: LX.Music.MusicInfoOnline[]
+  try {
+    list = await getListDetailAll(source, id)
+  } catch {
+    toast(global.i18n.t('list_error'))
+    return
+  }
+  if (!list.length) {
+    toast(global.i18n.t('download_list_empty_tip'))
+    return
+  }
+  const isConfirmed = await confirmDialog({
+    message: global.i18n.t('download_all_confirm', { name, num: list.length }),
+    confirmButtonText: global.i18n.t('confirm_button_text'),
+  })
+  if (!isConfirmed) return
+  const count = await startDownloads(list).catch(() => 0)
+  toast(global.i18n.t('download_all_started_tip', { num: count }))
 }
 
 export const handleCollect = async(id: string, source: Source, name: string) => {

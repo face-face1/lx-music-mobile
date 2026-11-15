@@ -114,7 +114,7 @@ const LrcLine = memo(({ line, lineNum, activeLine, onLayout }: LineProps) => {
 })
 const wait = async() => new Promise(resolve => setTimeout(resolve, 100))
 
-export default () => {
+export default ({ onScrollTop }: { onScrollTop?: (isTop: boolean) => void }) => {
   const lyricLines = useLrcSet()
   const { line } = useLrcPlay()
   const flatListRef = useRef<FlatList>(null)
@@ -125,6 +125,8 @@ export default () => {
   const lineRef = useRef({ line: 0, prevLine: 0 })
   const isFirstSetLrc = useRef(true)
   const scrollInfoRef = useRef<NativeSyntheticEvent<NativeScrollEvent>['nativeEvent'] | null>(null)
+  // 上一次向上层报告的「是否在顶部」状态，避免重复回调
+  const lastScrollTopRef = useRef(true)
   const listLayoutInfoRef = useRef<{ spaceHeight: number, lineHeights: number[] }>({ spaceHeight: 0, lineHeights: [] })
   const scrollCancelRef = useRef<(() => void) | null>(null)
   const isShowLyricProgressSetting = useSettingValue('playDetail.isShowLyricProgressSetting')
@@ -174,6 +176,13 @@ export default () => {
 
   const handleScroll = ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
     scrollInfoRef.current = nativeEvent
+    if (onScrollTop) {
+      const isTop = nativeEvent.contentOffset.y <= 0
+      if (isTop !== lastScrollTopRef.current) {
+        lastScrollTopRef.current = isTop
+        onScrollTop(isTop)
+      }
+    }
     if (isPauseScrollRef.current) {
       playLineRef.current?.updateScrollInfo(nativeEvent)
     }

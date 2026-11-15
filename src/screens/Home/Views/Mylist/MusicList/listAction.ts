@@ -1,6 +1,7 @@
 import { addListMusics, removeListMusics, updateListMusicPosition, updateListMusics } from '@/core/list'
 import { playList, playListById, playNext } from '@/core/player/player'
 import { addTempPlayList } from '@/core/player/tempPlayList'
+import { startDownloads } from '@/core/music/downloadManager'
 import settingState from '@/store/setting/state'
 import { similar, sortInsert, toOldMusicInfo } from '@/utils'
 import { confirmDialog, openUrl, shareMusic, toast } from '@/utils/tools'
@@ -23,6 +24,18 @@ export const handlePlayLater = (listId: SelectInfo['listId'], musicInfo: SelectI
   } else {
     addTempPlayList([{ listId, musicInfo }])
   }
+}
+
+export const handleDownloadMusic = async(musicInfo: SelectInfo['musicInfo'], selectedList: SelectInfo['selectedList'], onCancelSelect: () => void) => {
+  const targets = (selectedList.length ? selectedList : [musicInfo]).filter(m => m.source != 'local')
+  if (!targets.length) return
+  const count = await startDownloads(targets).catch(() => 0)
+  if (count > 0) {
+    toast(global.i18n.t('download_item_added_tip', { name: musicInfo.name }))
+  } else {
+    toast(global.i18n.t('download_task_exist_tip'))
+  }
+  onCancelSelect()
 }
 
 export const handleRemove = (listId: SelectInfo['listId'], musicInfo: SelectInfo['musicInfo'], selectedList: SelectInfo['selectedList'], onCancelSelect: () => void) => {

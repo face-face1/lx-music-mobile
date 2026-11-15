@@ -12,6 +12,7 @@ import { BorderWidths } from '@/theme'
 const SEARCH_TYPE_LIST = [
   'music',
   'songlist',
+  'singer',
 ] as const
 
 export default () => {
@@ -23,6 +24,12 @@ export default () => {
     void getSearchSetting().then(info => {
       setType(info.type)
     })
+    // 允许其它入口（如点击歌手结果）切换搜索分类时同步高亮
+    const handleTypeChange = (type: SearchType) => { setType(type) }
+    global.app_event.on('searchTypeChanged', handleTypeChange)
+    return () => {
+      global.app_event.off('searchTypeChanged', handleTypeChange)
+    }
   }, [])
 
   const list = useMemo(() => {
