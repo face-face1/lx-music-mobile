@@ -1,8 +1,11 @@
 import { httpGet } from '@/utils/request'
-import { author, name } from '../../package.json'
 import { downloadFile, stopDownload, temporaryDirectoryPath } from '@/utils/fs'
 import { getSupportedAbis, installApk } from '@/utils/nativeModules/utils'
 import { APP_PROVIDER_NAME } from '@/config/constant'
+
+// 更新渠道指向本 fork 仓库，避免提示更新到原版
+const UPDATE_REPO = 'face-face1/lx-music-mobile'
+const UPDATE_APP_NAME = 'lx-music-mobile'
 
 const abis = [
   'arm64-v8a',
@@ -13,14 +16,9 @@ const abis = [
 ]
 
 const address = [
-  [`https://raw.githubusercontent.com/${author.name}/${name}/master/publish/version.json`, 'direct'],
-  ['https://registry.npmjs.org/lx-music-mobile-version-info/latest', 'npm'],
-  [`https://cdn.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  [`https://fastly.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  [`https://gcore.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  ['https://registry.npmmirror.com/lx-music-mobile-version-info/latest', 'npm'],
-  ['https://gitee.com/lyswhut/lx-music-mobile-versions/raw/master/version.json', 'direct'],
-  ['http://cdn.stsky.cn/lx-music/mobile/version.json', 'direct'],
+  [`https://api.github.com/repos/${UPDATE_REPO}/releases/latest`, 'github'],
+  [`https://raw.githubusercontent.com/${UPDATE_REPO}/master/publish/version.json`, 'direct'],
+  [`https://cdn.jsdelivr.net/gh/${UPDATE_REPO}@master/publish/version.json`, 'direct'],
 ]
 
 
@@ -54,6 +52,17 @@ const getNpmPkgInfo = async(url) => {
   })
 }
 
+const getGithubReleaseInfo = async(url) => {
+  return request(url).then(info => {
+    if (!info.tag_name) throw new Error('failed')
+    return {
+      version: String(info.tag_name).replace(/^v/, ''),
+      desc: info.body ?? '',
+      history: [],
+    }
+  })
+}
+
 export const getVersionInfo = async(index = 0) => {
   const [url, source] = address[index]
   let promise
@@ -63,6 +72,9 @@ export const getVersionInfo = async(index = 0) => {
       break
     case 'npm':
       promise = getNpmPkgInfo(url)
+      break
+    case 'github':
+      promise = getGithubReleaseInfo(url)
       break
   }
 
@@ -84,9 +96,25 @@ let downloadJobId = null
 const noop = (total, download) => {}
 let apkSavePath
 
+const getReleaseAssetUrl = async(version, abi) => {
+  try {
+    const info = await request(`https://api.github.com/repos/${UPDATE_REPO}/releases/tags/v${version}`)
+    const assets = Array.isArray(info.assets) ? info.assets : []
+    const apkAssets = assets.filter(asset => typeof asset?.name == 'string' && asset.name.endsWith('.apk'))
+    const asset = apkAssets.find(asset => asset.name.endsWith(`-${abi}.apk`)) ??
+      apkAssets.find(asset => asset.name.includes('universal')) ??
+      apkAssets[0]
+    return asset?.browser_download_url ?? null
+  } catch {
+    return null
+  }
+}
+
 export const downloadNewVersion = async(version, onDownload = noop) => {
   const abi = await getTargetAbi()
-  const url = `https://github.com/${author.name}/${name}/releases/download/v${version}/${name}-v${version}-${abi}.apk`
+  // 优先从 release 附件里匹配对应架构的 APK，兼容自定义命名
+  const url = await getReleaseAssetUrl(version, abi) ??
+    `https://github.com/${UPDATE_REPO}/releases/download/v${version}/${UPDATE_APP_NAME}-v${version}-${abi}.apk`
   let savePath = temporaryDirectoryPath + '/lx-music-mobile.apk'
 
   if (downloadJobId) stopDownload(downloadJobId)

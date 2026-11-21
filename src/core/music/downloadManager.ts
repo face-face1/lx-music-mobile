@@ -36,6 +36,11 @@ const pendingIds: string[] = []
 let isRunning = false
 let currentJobId: number | null = null
 let currentTaskId: string | null = null
+// 下载限流：每分钟最多发起 20 个下载任务（约每 3 秒 1 首）
+const DOWNLOAD_INTERVAL = 60 * 1000 / 20
+let lastTaskStartTime = 0
+
+const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 const extFromUrl = (url: string): LX.Download.FileExt | null => {
   const match = /[?/].*?\.(\w{3,5})(?:[?#]|$)/.exec(url) ?? /\.(\w{3,5})(?:[?#]|$)/.exec(url)
@@ -264,7 +269,11 @@ const runQueue = async() => {
   isRunning = true
   try {
     while (pendingIds.length) {
+      // 控制下载发起频率，避免触发音源站限流
+      const wait = lastTaskStartTime + DOWNLOAD_INTERVAL - Date.now()
+      if (wait > 0) await sleep(wait)
       const taskId = pendingIds.shift()!
+      lastTaskStartTime = Date.now()
       await runTask(taskId)
     }
   } finally {
