@@ -51,12 +51,12 @@ public class AppIconModule extends ReactContextBaseJavaModule {
   private void resolveAliases() {
     try {
       PackageInfo pi = ctx.getPackageManager()
-        .getPackageInfo(ctx.getPackageName(), PackageManager.GET_ACTIVITIES);
+        .getPackageInfo(ctx.getPackageName(), PackageManager.GET_ACTIVITIES | PackageManager.MATCH_DISABLED_COMPONENTS);
       if (pi.activities == null) return;
       for (ActivityInfo ai : pi.activities) {
         for (String name : ICON_NAMES) {
           String suffix = Character.toUpperCase(name.charAt(0)) + name.substring(1);
-          if (ai.name.endsWith(".IconAlias" + suffix)) {
+          if (ai.name.endsWith("IconAlias" + suffix)) {
             aliasMap.put(name, new ComponentName(ai.packageName, ai.name));
           }
         }
@@ -65,13 +65,26 @@ public class AppIconModule extends ReactContextBaseJavaModule {
     }
   }
 
+  /**
+   * 清单里的相对类名按 build.gradle 的 namespace 解析，可能与 applicationId 不同，
+   * 例如 namespace 为 cn.toside.music.mobile 而包名为 cn.toside.music.mobile.fork
+   */
+  private String classPrefix() {
+    String appClass = ctx.getApplicationInfo().className;
+    if (appClass != null) {
+      int idx = appClass.lastIndexOf('.');
+      if (idx > 0) return appClass.substring(0, idx);
+    }
+    return ctx.getPackageName();
+  }
+
   private ComponentName aliasComponent(String name) {
     ComponentName component = aliasMap.get(name);
     if (component != null) return component;
     // 兜底：按 manifest 的命名规则构造
     String suffix = Character.toUpperCase(name.charAt(0)) + name.substring(1);
     return new ComponentName(ctx.getPackageName(),
-      ctx.getPackageName() + ".IconAlias" + suffix);
+      classPrefix() + ".IconAlias" + suffix);
   }
 
   @ReactMethod
@@ -184,15 +197,8 @@ public class AppIconModule extends ReactContextBaseJavaModule {
         return new ComponentName(alias.getPackageName(), cls.substring(0, idx) + ".MainActivity");
       }
     }
-    // 兜底：按 manifest 命名规则
-    String pkg = ctx.getPackageName();
-    try {
-      Class<?> main = Class.forName("cn.toside.music.mobile.MainActivity");
-      // Android 中类加载不受 manifest package 影响，直接用真实类
-      return new ComponentName(pkg, main.getName());
-    } catch (ClassNotFoundException e) {
-      return new ComponentName(pkg, pkg + ".MainActivity");
-    }
+    // 兜底：MainActivity 与 alias 使用同一个 namespace 类名前缀
+    return new ComponentName(ctx.getPackageName(), classPrefix() + ".MainActivity");
   }
 
   private Bitmap decodeBitmap(String filePath) throws Exception {
