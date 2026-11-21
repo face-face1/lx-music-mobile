@@ -17,6 +17,7 @@ const abis = [
 
 const address = [
   [`https://api.github.com/repos/${UPDATE_REPO}/releases/latest`, 'github'],
+  [`https://github.com/${UPDATE_REPO}/releases/latest/download/version.json`, 'direct'],
   [`https://raw.githubusercontent.com/${UPDATE_REPO}/master/publish/version.json`, 'direct'],
   [`https://cdn.jsdelivr.net/gh/${UPDATE_REPO}@master/publish/version.json`, 'direct'],
 ]
